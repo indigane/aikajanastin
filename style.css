@@ -129,6 +129,7 @@ body {
 #input-area {
     border-top: 1px solid var(--border-color);
     padding: 10px;
+    padding-bottom: calc(10px + env(keyboard-inset-height, 0px));
     display: flex;
     gap: 10px;
     align-items: flex-end;
@@ -164,14 +165,19 @@ body {
     top: 0;
     left: 0;
     width: 100%;
+    height: calc(100% - env(keyboard-inset-height, 0px));
     z-index: 2000;
     border-radius: 0;
     padding: 15px;
+    border: none;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
 }
 
 #close-expansion-btn {
     position: fixed;
-    bottom: 20px;
+    bottom: calc(20px + env(keyboard-inset-height, 0px));
     right: 20px;
     z-index: 2001;
     padding: 10px 20px;

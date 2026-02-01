@@ -15,6 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initDate();
     renderTimeline();
 
+    if (navigator.virtualKeyboard) {
+        navigator.virtualKeyboard.overlaysContent = true;
+    }
+
     // Event Listeners
     document.getElementById('date-btn').addEventListener('click', openDatePicker);
     document.getElementById('close-picker-btn').addEventListener('click', closeDatePicker);
@@ -35,6 +39,13 @@ function adjustForVisualViewport() {
 
     const input = document.getElementById('text-input');
     const closeBtn = document.getElementById('close-expansion-btn');
+
+    if (navigator.virtualKeyboard && navigator.virtualKeyboard.overlaysContent) {
+        input.style.height = '';
+        input.style.top = '';
+        closeBtn.style.bottom = '';
+        return;
+    }
 
     if (input.classList.contains('expanded')) {
         input.style.height = `${vv.height}px`;
