@@ -4,7 +4,7 @@
     --btn-bg: #eeeeee;
     --btn-text: #000000;
     --border-color: #cccccc;
-    --accent-color: #007bff;
+    --accent-color: #715cd7;
 }
 
 [data-theme="dark"] {
@@ -90,9 +90,7 @@ body {
 }
 
 .entry {
-    border-left: 3px solid var(--accent-color);
     padding: 10px;
-    padding-left: 10px;
     padding-bottom: 4px;
     border-bottom: 1px solid var(--border-color);
     cursor: pointer;
@@ -105,20 +103,14 @@ body {
 
 .entry.editing {
     background-color: var(--btn-bg);
-    border-left-width: 5px;
-}
-
-.entry-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 4px;
 }
 
 .entry-date {
     font-size: 0.85em;
     font-weight: bold;
     color: var(--accent-color);
+    margin-right: 10px;
+    display: inline;
 }
 
 .entry-text {
@@ -126,6 +118,7 @@ body {
     line-height: 1.4;
     white-space: pre-wrap;
     word-break: break-word;
+    display: inline;
 }
 
 .duplicate-btn {
@@ -136,6 +129,8 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 3px;
     cursor: pointer;
+    float: right;
+    margin-top: -2px;
 }
 
 #input-area {
@@ -187,27 +182,41 @@ body {
     -webkit-appearance: none;
 }
 
-#close-expansion-btn {
+#cancel-btn {
+    position: fixed;
+    bottom: calc(20px + env(keyboard-inset-height, 0px));
+    left: 20px;
+    z-index: 2001;
+    padding: 10px 20px;
+    background-color: transparent;
+    color: var(--accent-color);
+    border: 1px solid var(--accent-color);
+    border-radius: 4px;
+    font-weight: bold;
+    opacity: 0.8;
+}
+
+#delete-btn {
+    position: fixed;
+    bottom: calc(20px + env(keyboard-inset-height, 0px));
+    left: 115px;
+    z-index: 2001;
+    padding: 10px 20px;
+    background-color: transparent;
+    color: #b35d67;
+    border: 1px solid #b35d67;
+    border-radius: 4px;
+    font-weight: bold;
+    opacity: 0.8;
+}
+
+#done-btn {
     position: fixed;
     bottom: calc(20px + env(keyboard-inset-height, 0px));
     right: 20px;
     z-index: 2001;
     padding: 10px 20px;
     background-color: var(--accent-color);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-weight: bold;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-}
-
-#delete-btn {
-    position: fixed;
-    bottom: calc(20px + env(keyboard-inset-height, 0px));
-    left: 20px;
-    z-index: 2001;
-    padding: 10px 20px;
-    background-color: #dc3545;
     color: white;
     border: none;
     border-radius: 4px;
