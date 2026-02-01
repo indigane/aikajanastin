@@ -177,7 +177,10 @@ function loadFromLocalStorage() {
     }
     const savedTheme = localStorage.getItem('timeline-theme');
     if (savedTheme) {
-        setTheme(savedTheme);
+        setTheme(savedTheme, false);
+    } else {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        setTheme(prefersDark ? 'dark' : 'light', false);
     }
 }
 
@@ -208,10 +211,10 @@ function duplicateEntryDate(id) {
     }
 }
 
-function setTheme(theme) {
+function setTheme(theme, save = true) {
     state.theme = theme;
     document.body.setAttribute('data-theme', theme);
-    saveThemeToLocalStorage();
+    if (save) saveThemeToLocalStorage();
 }
 
 function exportEntries() {
