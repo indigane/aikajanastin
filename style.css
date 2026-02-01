@@ -91,9 +91,21 @@ body {
 
 .entry {
     border-left: 3px solid var(--accent-color);
+    padding: 10px;
     padding-left: 10px;
     padding-bottom: 4px;
     border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.entry:active {
+    background-color: var(--btn-bg);
+}
+
+.entry.editing {
+    background-color: var(--btn-bg);
+    border-left-width: 5px;
 }
 
 .entry-header {
@@ -189,7 +201,21 @@ body {
     box-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
 
-#add-btn {
+#delete-btn {
+    position: fixed;
+    bottom: calc(20px + env(keyboard-inset-height, 0px));
+    left: 20px;
+    z-index: 2001;
+    padding: 10px 20px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+#new-btn {
     padding: 10px 15px;
     background-color: var(--accent-color);
     color: white;

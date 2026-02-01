@@ -6,7 +6,8 @@ let state = {
         month: 1,
         day: 1
     },
-    theme: 'light'
+    theme: 'light',
+    editingId: null
 };
 
 // Initial setup
@@ -23,8 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('date-btn').addEventListener('click', openDatePicker);
     document.getElementById('close-picker-btn').addEventListener('click', closeDatePicker);
     document.getElementById('text-input').addEventListener('focus', expandTextInput);
+    document.getElementById('text-input').addEventListener('input', autoSave);
     document.getElementById('close-expansion-btn').addEventListener('click', collapseTextInput);
-    document.getElementById('add-btn').addEventListener('click', addEntry);
+    document.getElementById('new-btn').addEventListener('click', exitEditMode);
+    document.getElementById('delete-btn').addEventListener('click', deleteEntry);
     document.getElementById('export-btn').addEventListener('click', exportEntries);
 
     if (window.visualViewport) {
@@ -39,11 +42,13 @@ function adjustForVisualViewport() {
 
     const input = document.getElementById('text-input');
     const closeBtn = document.getElementById('close-expansion-btn');
+    const deleteBtn = document.getElementById('delete-btn');
 
     if (navigator.virtualKeyboard && navigator.virtualKeyboard.overlaysContent) {
         input.style.height = '';
         input.style.top = '';
         closeBtn.style.bottom = '';
+        deleteBtn.style.bottom = '';
         return;
     }
 
@@ -53,49 +58,88 @@ function adjustForVisualViewport() {
 
         const bottomOffset = window.innerHeight - vv.height - vv.offsetTop;
         closeBtn.style.bottom = `${bottomOffset + 20}px`;
+        deleteBtn.style.bottom = `${bottomOffset + 20}px`;
     } else {
         input.style.height = '';
         input.style.top = '';
         closeBtn.style.bottom = '';
+        deleteBtn.style.bottom = '';
     }
 }
 
 function expandTextInput() {
     const input = document.getElementById('text-input');
     const closeBtn = document.getElementById('close-expansion-btn');
+    const deleteBtn = document.getElementById('delete-btn');
     input.classList.add('expanded');
     closeBtn.classList.remove('hidden');
+    deleteBtn.classList.remove('hidden');
     adjustForVisualViewport();
 }
 
 function collapseTextInput() {
     const input = document.getElementById('text-input');
     const closeBtn = document.getElementById('close-expansion-btn');
+    const deleteBtn = document.getElementById('delete-btn');
     input.classList.remove('expanded');
     closeBtn.classList.add('hidden');
+    deleteBtn.classList.add('hidden');
     input.blur();
     adjustForVisualViewport();
 }
 
-function addEntry() {
+function autoSave() {
     const input = document.getElementById('text-input');
-    const text = input.value.trim();
-    if (!text) return;
+    const text = input.value;
 
-    const newEntry = {
-        id: Date.now(),
-        date: { ...state.selectedDate },
-        text: text
-    };
-
-    state.entries.push(newEntry);
+    if (state.editingId === null) {
+        // Create new entry
+        const newEntry = {
+            id: Date.now(),
+            date: { ...state.selectedDate },
+            text: text
+        };
+        state.entries.push(newEntry);
+        state.editingId = newEntry.id;
+    } else {
+        // Update existing entry
+        const entry = state.entries.find(e => e.id === state.editingId);
+        if (entry) {
+            entry.date = { ...state.selectedDate };
+            entry.text = text;
+        }
+    }
     saveToLocalStorage();
     renderTimeline();
-    
-    input.value = '';
-    if (input.classList.contains('expanded')) {
-        collapseTextInput();
+}
+
+function enterEditMode(id) {
+    const entry = state.entries.find(e => e.id === id);
+    if (!entry) return;
+
+    state.editingId = id;
+    state.selectedDate = { ...entry.date };
+    document.getElementById('text-input').value = entry.text;
+    updateDateButton();
+    expandTextInput();
+    document.getElementById('text-input').focus();
+    renderTimeline(); // Highlight the editing entry
+}
+
+function exitEditMode() {
+    state.editingId = null;
+    document.getElementById('text-input').value = '';
+    initDate();
+    collapseTextInput();
+    renderTimeline();
+}
+
+function deleteEntry() {
+    if (state.editingId !== null) {
+        state.entries = state.entries.filter(e => e.id !== state.editingId);
+        saveToLocalStorage();
     }
+    exitEditMode();
 }
 
 function initDate() {
@@ -168,6 +212,7 @@ function pickDayTens(val) {
     if (state.selectedDate.day === 0) state.selectedDate.day = 1;
     updateDateButton();
     updateSelection('day-tens', val);
+    autoSave();
 }
 
 function pickDayOnes(val) {
@@ -176,6 +221,7 @@ function pickDayOnes(val) {
     if (state.selectedDate.day === 0) state.selectedDate.day = 1;
     updateDateButton();
     updateSelection('day-ones', val);
+    autoSave();
 }
 
 function pickMonth(val) {
@@ -183,6 +229,7 @@ function pickMonth(val) {
     updateDateButton();
     updateSelection('month-row-1', val);
     updateSelection('month-row-2', val);
+    autoSave();
 }
 
 function pickCentury(val) {
@@ -190,6 +237,7 @@ function pickCentury(val) {
     state.selectedDate.year = val * 100 + rest;
     updateDateButton();
     updateSelection('year-century', val);
+    autoSave();
 }
 
 function pickYearTens(val) {
@@ -198,6 +246,7 @@ function pickYearTens(val) {
     state.selectedDate.year = century * 100 + val * 10 + ones;
     updateDateButton();
     updateSelection('year-tens', val);
+    autoSave();
 }
 
 function pickYearOnes(val) {
@@ -206,6 +255,7 @@ function pickYearOnes(val) {
     state.selectedDate.year = century * 100 + tens * 10 + val;
     updateDateButton();
     updateSelection('year-ones', val);
+    autoSave();
 }
 
 function loadFromLocalStorage() {
@@ -242,9 +292,11 @@ function getSortedEntries() {
 function duplicateEntryDate(id) {
     const entry = state.entries.find(e => e.id === id);
     if (entry) {
+        state.editingId = null;
         state.selectedDate = { ...entry.date };
         updateDateButton();
-        // Scroll to bottom input area if needed, but usually it's fixed.
+        document.getElementById('text-input').value = '';
+        autoSave();
         document.getElementById('text-input').focus();
     }
 }
@@ -281,6 +333,15 @@ function renderTimeline() {
     sortedEntries.forEach(entry => {
         const div = document.createElement('div');
         div.className = 'entry';
+        if (state.editingId === entry.id) {
+            div.classList.add('editing');
+        }
+
+        div.onclick = (e) => {
+            if (e.target.classList.contains('duplicate-btn')) return;
+            enterEditMode(entry.id);
+        };
+
         const dateStr = `${entry.date.year}-${String(entry.date.month).padStart(2, '0')}-${String(entry.date.day).padStart(2, '0')}`;
         div.innerHTML = `
             <div class="entry-header">
