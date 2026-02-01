@@ -7,7 +7,8 @@ let state = {
         day: 1
     },
     theme: 'light',
-    editingId: null
+    editingId: null,
+    originalEntryData: null
 };
 
 // Initial setup
@@ -25,7 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('close-picker-btn').addEventListener('click', closeDatePicker);
     document.getElementById('text-input').addEventListener('focus', expandTextInput);
     document.getElementById('text-input').addEventListener('input', autoSave);
-    document.getElementById('close-expansion-btn').addEventListener('click', collapseTextInput);
+    document.getElementById('cancel-btn').addEventListener('click', cancelEdit);
+    document.getElementById('done-btn').addEventListener('click', collapseTextInput);
     document.getElementById('new-btn').addEventListener('click', exitEditMode);
     document.getElementById('delete-btn').addEventListener('click', deleteEntry);
     document.getElementById('export-btn').addEventListener('click', exportEntries);
@@ -41,14 +43,16 @@ function adjustForVisualViewport() {
     if (!vv) return;
 
     const input = document.getElementById('text-input');
-    const closeBtn = document.getElementById('close-expansion-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
     const deleteBtn = document.getElementById('delete-btn');
+    const doneBtn = document.getElementById('done-btn');
 
     if (navigator.virtualKeyboard && navigator.virtualKeyboard.overlaysContent) {
         input.style.height = '';
         input.style.top = '';
-        closeBtn.style.bottom = '';
+        cancelBtn.style.bottom = '';
         deleteBtn.style.bottom = '';
+        doneBtn.style.bottom = '';
         return;
     }
 
@@ -57,33 +61,39 @@ function adjustForVisualViewport() {
         input.style.top = `${vv.offsetTop}px`;
 
         const bottomOffset = window.innerHeight - vv.height - vv.offsetTop;
-        closeBtn.style.bottom = `${bottomOffset + 20}px`;
+        cancelBtn.style.bottom = `${bottomOffset + 20}px`;
         deleteBtn.style.bottom = `${bottomOffset + 20}px`;
+        doneBtn.style.bottom = `${bottomOffset + 20}px`;
     } else {
         input.style.height = '';
         input.style.top = '';
-        closeBtn.style.bottom = '';
+        cancelBtn.style.bottom = '';
         deleteBtn.style.bottom = '';
+        doneBtn.style.bottom = '';
     }
 }
 
 function expandTextInput() {
     const input = document.getElementById('text-input');
-    const closeBtn = document.getElementById('close-expansion-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
     const deleteBtn = document.getElementById('delete-btn');
+    const doneBtn = document.getElementById('done-btn');
     input.classList.add('expanded');
-    closeBtn.classList.remove('hidden');
+    cancelBtn.classList.remove('hidden');
     deleteBtn.classList.remove('hidden');
+    doneBtn.classList.remove('hidden');
     adjustForVisualViewport();
 }
 
 function collapseTextInput() {
     const input = document.getElementById('text-input');
-    const closeBtn = document.getElementById('close-expansion-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
     const deleteBtn = document.getElementById('delete-btn');
+    const doneBtn = document.getElementById('done-btn');
     input.classList.remove('expanded');
-    closeBtn.classList.add('hidden');
+    cancelBtn.classList.add('hidden');
     deleteBtn.classList.add('hidden');
+    doneBtn.classList.add('hidden');
     input.blur();
     adjustForVisualViewport();
 }
@@ -118,16 +128,16 @@ function enterEditMode(id) {
     if (!entry) return;
 
     state.editingId = id;
+    state.originalEntryData = { text: entry.text, date: { ...entry.date } };
     state.selectedDate = { ...entry.date };
     document.getElementById('text-input').value = entry.text;
     updateDateButton();
-    expandTextInput();
-    document.getElementById('text-input').focus();
     renderTimeline(); // Highlight the editing entry
 }
 
 function exitEditMode() {
     state.editingId = null;
+    state.originalEntryData = null;
     document.getElementById('text-input').value = '';
     initDate();
     collapseTextInput();
@@ -138,6 +148,25 @@ function deleteEntry() {
     if (state.editingId !== null) {
         state.entries = state.entries.filter(e => e.id !== state.editingId);
         saveToLocalStorage();
+    }
+    exitEditMode();
+}
+
+function cancelEdit() {
+    if (state.editingId !== null) {
+        if (state.originalEntryData) {
+            // Restore original data
+            const entry = state.entries.find(e => e.id === state.editingId);
+            if (entry) {
+                entry.text = state.originalEntryData.text;
+                entry.date = { ...state.originalEntryData.date };
+            }
+        } else {
+            // It was a new entry, remove it
+            state.entries = state.entries.filter(e => e.id !== state.editingId);
+        }
+        saveToLocalStorage();
+        renderTimeline();
     }
     exitEditMode();
 }
@@ -297,7 +326,6 @@ function duplicateEntryDate(id) {
         updateDateButton();
         document.getElementById('text-input').value = '';
         autoSave();
-        document.getElementById('text-input').focus();
     }
 }
 
@@ -344,11 +372,9 @@ function renderTimeline() {
 
         const dateStr = `${entry.date.year}-${String(entry.date.month).padStart(2, '0')}-${String(entry.date.day).padStart(2, '0')}`;
         div.innerHTML = `
-            <div class="entry-header">
-                <span class="entry-date">${dateStr}</span>
-                <button class="duplicate-btn" onclick="duplicateEntryDate(${entry.id})">Duplicate</button>
-            </div>
-            <div class="entry-text">${entry.text}</div>
+            <span class="entry-date">${dateStr}</span>
+            <span class="entry-text">${entry.text}</span>
+            <button class="duplicate-btn" onclick="duplicateEntryDate(${entry.id})">Duplicate</button>
         `;
         timeline.appendChild(div);
     });
