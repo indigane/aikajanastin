@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Timeline App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-theme="light">
+    <header id="top-controls">
+        <div class="theme-toggles">
+            <button onclick="setTheme('light')" class="theme-btn" title="Light">L</button>
+            <button onclick="setTheme('dark')" class="theme-btn" title="Dark">D</button>
+            <button onclick="setTheme('sepia')" class="theme-btn" title="Sepia">S</button>
+        </div>
+        <button id="export-btn">Export</button>
+    </header>
+
+    <main id="timeline-container">
+        <div id="timeline"></div>
+    </main>
+
+    <footer id="input-area">
+        <button id="date-btn">YYYY-MM-DD</button>
+        <textarea id="text-input" placeholder="What happened?"></textarea>
+        <button id="add-btn">Add</button>
+        <button id="close-expansion-btn" class="hidden">Done</button>
+    </footer>
+
+    <div id="date-picker" class="overlay hidden">
+        <div class="picker-content">
+            <div class="picker-section">
+                <div class="section-label">DAY</div>
+                <div class="button-row" id="day-tens">
+                    <button onclick="pickDayTens(0)">0</button>
+                    <button onclick="pickDayTens(1)">1</button>
+                    <button onclick="pickDayTens(2)">2</button>
+                    <button onclick="pickDayTens(3)">3</button>
+                </div>
+                <div class="button-row" id="day-ones">
+                    <button onclick="pickDayOnes(0)">0</button>
+                    <button onclick="pickDayOnes(1)">1</button>
+                    <button onclick="pickDayOnes(2)">2</button>
+                    <button onclick="pickDayOnes(3)">3</button>
+                    <button onclick="pickDayOnes(4)">4</button>
+                    <button onclick="pickDayOnes(5)">5</button>
+                    <button onclick="pickDayOnes(6)">6</button>
+                    <button onclick="pickDayOnes(7)">7</button>
+                    <button onclick="pickDayOnes(8)">8</button>
+                    <button onclick="pickDayOnes(9)">9</button>
+                </div>
+            </div>
+
+            <div class="picker-section">
+                <div class="section-label">MONTH</div>
+                <div class="button-row" id="month-row-1">
+                    <button onclick="pickMonth(1)">1</button>
+                    <button onclick="pickMonth(2)">2</button>
+                    <button onclick="pickMonth(3)">3</button>
+                    <button onclick="pickMonth(4)">4</button>
+                    <button onclick="pickMonth(5)">5</button>
+                    <button onclick="pickMonth(6)">6</button>
+                </div>
+                <div class="button-row" id="month-row-2">
+                    <button onclick="pickMonth(7)">7</button>
+                    <button onclick="pickMonth(8)">8</button>
+                    <button onclick="pickMonth(9)">9</button>
+                    <button onclick="pickMonth(10)">10</button>
+                    <button onclick="pickMonth(11)">11</button>
+                    <button onclick="pickMonth(12)">12</button>
+                </div>
+            </div>
+
+            <div class="picker-section">
+                <div class="section-label">YEAR</div>
+                <div class="button-row" id="year-century">
+                    <button onclick="pickCentury(17)">17</button>
+                    <button onclick="pickCentury(18)">18</button>
+                    <button onclick="pickCentury(19)">19</button>
+                    <button onclick="pickCentury(20)">20</button>
+                </div>
+                <div class="button-row" id="year-tens">
+                    <button onclick="pickYearTens(0)">0</button>
+                    <button onclick="pickYearTens(1)">1</button>
+                    <button onclick="pickYearTens(2)">2</button>
+                    <button onclick="pickYearTens(3)">3</button>
+                    <button onclick="pickYearTens(4)">4</button>
+                    <button onclick="pickYearTens(5)">5</button>
+                    <button onclick="pickYearTens(6)">6</button>
+                    <button onclick="pickYearTens(7)">7</button>
+                    <button onclick="pickYearTens(8)">8</button>
+                    <button onclick="pickYearTens(9)">9</button>
+                </div>
+                <div class="button-row" id="year-ones">
+                    <button onclick="pickYearOnes(0)">0</button>
+                    <button onclick="pickYearOnes(1)">1</button>
+                    <button onclick="pickYearOnes(2)">2</button>
+                    <button onclick="pickYearOnes(3)">3</button>
+                    <button onclick="pickYearOnes(4)">4</button>
+                    <button onclick="pickYearOnes(5)">5</button>
+                    <button onclick="pickYearOnes(6)">6</button>
+                    <button onclick="pickYearOnes(7)">7</button>
+                    <button onclick="pickYearOnes(8)">8</button>
+                    <button onclick="pickYearOnes(9)">9</button>
+                </div>
+            </div>
+
+            <div class="picker-footer">
+                <div id="picker-preview"></div>
+                <button id="close-picker-btn">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
