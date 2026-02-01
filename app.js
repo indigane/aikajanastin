@@ -22,13 +22,39 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('close-expansion-btn').addEventListener('click', collapseTextInput);
     document.getElementById('add-btn').addEventListener('click', addEntry);
     document.getElementById('export-btn').addEventListener('click', exportEntries);
+
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', adjustForVisualViewport);
+        window.visualViewport.addEventListener('scroll', adjustForVisualViewport);
+    }
 });
+
+function adjustForVisualViewport() {
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    const input = document.getElementById('text-input');
+    const closeBtn = document.getElementById('close-expansion-btn');
+
+    if (input.classList.contains('expanded')) {
+        input.style.height = `${vv.height}px`;
+        input.style.top = `${vv.offsetTop}px`;
+
+        const bottomOffset = window.innerHeight - vv.height - vv.offsetTop;
+        closeBtn.style.bottom = `${bottomOffset + 20}px`;
+    } else {
+        input.style.height = '';
+        input.style.top = '';
+        closeBtn.style.bottom = '';
+    }
+}
 
 function expandTextInput() {
     const input = document.getElementById('text-input');
     const closeBtn = document.getElementById('close-expansion-btn');
     input.classList.add('expanded');
     closeBtn.classList.remove('hidden');
+    adjustForVisualViewport();
 }
 
 function collapseTextInput() {
@@ -37,6 +63,7 @@ function collapseTextInput() {
     input.classList.remove('expanded');
     closeBtn.classList.add('hidden');
     input.blur();
+    adjustForVisualViewport();
 }
 
 function addEntry() {
