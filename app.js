@@ -2,11 +2,12 @@
 let state = {
     entries: [],
     selectedDate: {
-        year: 2023,
+        year: 1993,
         month: 1,
         day: 1
     },
     theme: 'light',
+    dateFormat: 'locale',
     editingId: null,
     originalEntryData: null
 };
@@ -31,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('new-btn').addEventListener('click', exitEditMode);
     document.getElementById('delete-btn').addEventListener('click', deleteEntry);
     document.getElementById('export-btn').addEventListener('click', exportEntries);
+    document.getElementById('date-format-toggle').addEventListener('click', toggleDateFormat);
 
     if (window.visualViewport) {
         window.visualViewport.addEventListener('resize', adjustForVisualViewport);
@@ -172,11 +174,10 @@ function cancelEdit() {
 }
 
 function initDate() {
-    const now = new Date();
     state.selectedDate = {
-        year: now.getFullYear(),
-        month: now.getMonth() + 1,
-        day: now.getDate()
+        year: 1993,
+        month: 1,
+        day: 1
     };
     updateDateButton();
 }
@@ -184,7 +185,8 @@ function initDate() {
 function updateDateButton() {
     const { year, month, day } = state.selectedDate;
     const dateBtn = document.getElementById('date-btn');
-    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const date = Temporal.PlainDate.from({ year, month, day });
+    const dateStr = date.toString();
     dateBtn.textContent = dateStr;
     document.getElementById('picker-preview').textContent = dateStr;
 }
@@ -299,6 +301,10 @@ function loadFromLocalStorage() {
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         setTheme(prefersDark ? 'dark' : 'light', false);
     }
+    const savedDateFormat = localStorage.getItem('timeline-date-format');
+    if (savedDateFormat) {
+        state.dateFormat = savedDateFormat;
+    }
 }
 
 function saveToLocalStorage() {
@@ -307,6 +313,16 @@ function saveToLocalStorage() {
 
 function saveThemeToLocalStorage() {
     localStorage.setItem('timeline-theme', state.theme);
+}
+
+function saveDateFormatToLocalStorage() {
+    localStorage.setItem('timeline-date-format', state.dateFormat);
+}
+
+function toggleDateFormat() {
+    state.dateFormat = state.dateFormat === 'iso-weekday' ? 'locale' : 'iso-weekday';
+    saveDateFormatToLocalStorage();
+    renderTimeline();
 }
 
 function getSortedEntries() {
@@ -339,7 +355,8 @@ function exportEntries() {
     const sortedEntries = getSortedEntries();
     let text = "Timeline Export\n\n";
     sortedEntries.forEach(entry => {
-        const dateStr = `${entry.date.year}-${String(entry.date.month).padStart(2, '0')}-${String(entry.date.day).padStart(2, '0')}`;
+        const date = Temporal.PlainDate.from(entry.date);
+        const dateStr = date.toString();
         text += `[${dateStr}]\n${entry.text}\n\n`;
     });
 
@@ -370,7 +387,11 @@ function renderTimeline() {
             enterEditMode(entry.id);
         };
 
-        const dateStr = `${entry.date.year}-${String(entry.date.month).padStart(2, '0')}-${String(entry.date.day).padStart(2, '0')}`;
+        const date = Temporal.PlainDate.from(entry.date);
+        const dateStr = state.dateFormat === 'iso-weekday'
+            ? `${date.toString()}, ${date.toLocaleString('en-US', { weekday: 'short' })}`
+            : date.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+
         div.innerHTML = `
             <span class="entry-date">${dateStr}</span>
             <span class="entry-text">${entry.text}</span>
