@@ -86,6 +86,14 @@ function expandTextInput() {
     const cancelBtn = document.getElementById('cancel-btn');
     const deleteBtn = document.getElementById('delete-btn');
     const doneBtn = document.getElementById('done-btn');
+
+    if (state.editingId !== null) {
+        const entry = state.entries.find(e => e.id === state.editingId);
+        if (entry) {
+            state.originalEntryData = { text: entry.text, date: { ...entry.date } };
+        }
+    }
+
     input.classList.add('expanded');
     cancelBtn.classList.remove('hidden');
     deleteBtn.classList.remove('hidden');
@@ -173,15 +181,11 @@ function deleteEntry() {
 function cancelEdit() {
     if (state.editingId !== null) {
         if (state.originalEntryData) {
-            // Restore original data
+            // Restore original text
             const entry = state.entries.find(e => e.id === state.editingId);
             if (entry) {
                 entry.text = state.originalEntryData.text;
-                entry.date = { ...state.originalEntryData.date };
             }
-        } else {
-            // It was a new entry, remove it
-            state.entries = state.entries.filter(e => e.id !== state.editingId);
         }
         saveToLocalStorage();
         renderTimeline();
