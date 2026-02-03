@@ -48,33 +48,19 @@ body {
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     padding: 0 10px;
     background-color: var(--bg-color);
 }
 
-.theme-toggles {
-    display: flex;
-    gap: 5px;
-}
-
-.theme-btn {
-    width: 30px;
-    height: 30px;
-    border: 1px solid var(--border-color);
-    background-color: var(--btn-bg);
-    color: var(--btn-text);
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-#export-btn {
+#settings-btn {
     padding: 5px 10px;
     background-color: var(--btn-bg);
     color: var(--btn-text);
     border: 1px solid var(--border-color);
     border-radius: 4px;
     cursor: pointer;
+    font-size: 14px;
 }
 
 #timeline-container {
@@ -311,7 +297,7 @@ body {
     font-size: 1.2em;
 }
 
-#close-picker-btn {
+#close-picker-btn, #close-settings-btn {
     padding: 10px 20px;
     background-color: var(--accent-color);
     color: white;
@@ -319,4 +305,10 @@ body {
     border-radius: 4px;
     font-weight: bold;
     cursor: pointer;
+}
+
+/* Read-Only Mode */
+body.read-only #input-area,
+body.read-only .duplicate-btn {
+    display: none !important;
 }
