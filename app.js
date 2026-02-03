@@ -98,6 +98,16 @@ function collapseTextInput() {
     const cancelBtn = document.getElementById('cancel-btn');
     const deleteBtn = document.getElementById('delete-btn');
     const doneBtn = document.getElementById('done-btn');
+
+    if (state.editingId !== null) {
+        const entry = state.entries.find(e => e.id === state.editingId);
+        if (entry) {
+            state.originalEntryData = { text: entry.text, date: { ...entry.date } };
+        } else {
+            state.originalEntryData = null;
+        }
+    }
+
     input.classList.remove('expanded');
     cancelBtn.classList.add('hidden');
     deleteBtn.classList.add('hidden');
@@ -403,6 +413,7 @@ function duplicateEntryDate(id) {
     const entry = state.entries.find(e => e.id === id);
     if (entry) {
         state.editingId = null;
+        state.originalEntryData = null;
         state.selectedDate = { ...entry.date };
         updateDateButton();
         document.getElementById('text-input').value = '';
