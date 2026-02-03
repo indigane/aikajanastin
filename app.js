@@ -8,6 +8,8 @@ let state = {
     },
     theme: 'light',
     dateFormat: 'locale',
+    sortDirection: 'asc',
+    readOnly: false,
     editingId: null,
     originalEntryData: null
 };
@@ -31,8 +33,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('done-btn').addEventListener('click', collapseTextInput);
     document.getElementById('new-btn').addEventListener('click', exitEditMode);
     document.getElementById('delete-btn').addEventListener('click', deleteEntry);
-    document.getElementById('export-btn').addEventListener('click', exportEntries);
-    document.getElementById('date-format-toggle').addEventListener('click', toggleDateFormat);
+    document.getElementById('settings-btn').addEventListener('click', openSettings);
+    document.getElementById('close-settings-btn').addEventListener('click', closeSettings);
+    document.getElementById('settings-date-format-toggle').addEventListener('click', toggleDateFormat);
+    document.getElementById('settings-sort-direction-toggle').addEventListener('click', toggleSortDirection);
+    document.getElementById('settings-read-only-toggle').addEventListener('click', toggleReadOnly);
+    document.getElementById('settings-export-btn').addEventListener('click', exportEntries);
 
     if (window.visualViewport) {
         window.visualViewport.addEventListener('resize', adjustForVisualViewport);
@@ -191,6 +197,45 @@ function updateDateButton() {
     document.getElementById('picker-preview').textContent = dateStr;
 }
 
+// Settings Logic
+function openSettings() {
+    document.getElementById('settings-view').classList.remove('hidden');
+    updateSettingsUI();
+}
+
+function closeSettings() {
+    document.getElementById('settings-view').classList.add('hidden');
+}
+
+function updateSettingsUI() {
+    const dateFormatBtn = document.getElementById('settings-date-format-toggle');
+    const sampleDate = Temporal.PlainDate.from({ year: 1993, month: 1, day: 1 });
+    const formatStr = state.dateFormat === 'iso-weekday'
+        ? `${sampleDate.toString()}, ${sampleDate.toLocaleString('en-US', { weekday: 'short' })}`
+        : sampleDate.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    dateFormatBtn.textContent = `Format: ${formatStr}`;
+
+    const sortBtn = document.getElementById('settings-sort-direction-toggle');
+    sortBtn.textContent = state.sortDirection === 'asc' ? 'Sort: Ascending' : 'Sort: Descending';
+
+    const readOnlyBtn = document.getElementById('settings-read-only-toggle');
+    readOnlyBtn.textContent = state.readOnly ? 'Read-Only: On' : 'Read-Only: Off';
+}
+
+function toggleSortDirection() {
+    state.sortDirection = state.sortDirection === 'asc' ? 'desc' : 'asc';
+    saveSortDirectionToLocalStorage();
+    updateSettingsUI();
+    renderTimeline();
+}
+
+function toggleReadOnly() {
+    state.readOnly = !state.readOnly;
+    saveReadOnlyToLocalStorage();
+    updateSettingsUI();
+    renderTimeline();
+}
+
 // Date Picker Logic
 function openDatePicker() {
     document.getElementById('date-picker').classList.remove('hidden');
@@ -305,6 +350,14 @@ function loadFromLocalStorage() {
     if (savedDateFormat) {
         state.dateFormat = savedDateFormat;
     }
+    const savedSortDirection = localStorage.getItem('timeline-sort-direction');
+    if (savedSortDirection) {
+        state.sortDirection = savedSortDirection;
+    }
+    const savedReadOnly = localStorage.getItem('timeline-read-only');
+    if (savedReadOnly) {
+        state.readOnly = savedReadOnly === 'true';
+    }
 }
 
 function saveToLocalStorage() {
@@ -319,18 +372,30 @@ function saveDateFormatToLocalStorage() {
     localStorage.setItem('timeline-date-format', state.dateFormat);
 }
 
+function saveSortDirectionToLocalStorage() {
+    localStorage.setItem('timeline-sort-direction', state.sortDirection);
+}
+
+function saveReadOnlyToLocalStorage() {
+    localStorage.setItem('timeline-read-only', state.readOnly);
+}
+
 function toggleDateFormat() {
     state.dateFormat = state.dateFormat === 'iso-weekday' ? 'locale' : 'iso-weekday';
     saveDateFormatToLocalStorage();
+    updateSettingsUI();
     renderTimeline();
 }
 
 function getSortedEntries() {
     return [...state.entries].sort((a, b) => {
-        if (a.date.year !== b.date.year) return a.date.year - b.date.year;
-        if (a.date.month !== b.date.month) return a.date.month - b.date.month;
-        if (a.date.day !== b.date.day) return a.date.day - b.date.day;
-        return a.id - b.id; // Tie-breaker
+        let cmp = 0;
+        if (a.date.year !== b.date.year) cmp = a.date.year - b.date.year;
+        else if (a.date.month !== b.date.month) cmp = a.date.month - b.date.month;
+        else if (a.date.day !== b.date.day) cmp = a.date.day - b.date.day;
+        else cmp = a.id - b.id; // Tie-breaker
+
+        return state.sortDirection === 'asc' ? cmp : -cmp;
     });
 }
 
@@ -373,6 +438,12 @@ function renderTimeline() {
     const timeline = document.getElementById('timeline');
     timeline.innerHTML = '';
     
+    if (state.readOnly) {
+        document.body.classList.add('read-only');
+    } else {
+        document.body.classList.remove('read-only');
+    }
+
     const sortedEntries = getSortedEntries();
 
     sortedEntries.forEach(entry => {
@@ -383,6 +454,7 @@ function renderTimeline() {
         }
 
         div.onclick = (e) => {
+            if (state.readOnly) return;
             if (e.target.classList.contains('duplicate-btn')) return;
             enterEditMode(entry.id);
         };
