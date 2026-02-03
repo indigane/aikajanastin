@@ -480,9 +480,9 @@ function renderTimeline() {
             : date.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 
         div.innerHTML = `
+            <button class="duplicate-btn" onclick="duplicateEntryDate(${entry.id})">D</button>
             <span class="entry-date">${dateStr}</span>
             <span class="entry-text">${entry.text}</span>
-            <button class="duplicate-btn" onclick="duplicateEntryDate(${entry.id})">Duplicate</button>
         `;
         timeline.appendChild(div);
     });
